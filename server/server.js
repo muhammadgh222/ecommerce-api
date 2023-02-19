@@ -1,8 +1,8 @@
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
 dotenv.config({ path: "./.env" });
-const app = require("./app");
+import app from "./app.js";
 
 const PORT = process.env.PORT || 5000;
 const DB = process.env.MONGO_URI.replace("<password>", process.env.DB_PASSWORD);

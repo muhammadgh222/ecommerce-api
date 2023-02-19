@@ -1,8 +1,24 @@
-const express = require("express");
-const AppError = require("./utilities/AppError");
-const ErrorHandler = require("./utilities/ErrorHandler");
+import express from "express";
+import path from "path";
+
+// Routes exports
+import authRoutes from "./routes/authRoutes.js";
+
+// Utilites  exports
+import ErrorHandler from "./utilities/ErrorHandler.js";
+import AppError from "./utilities/AppError.js";
 
 const app = express();
+
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+const __dirname = path.resolve();
+
+app.use(express.static(path.join(__dirname, "public")));
+
+// Routes implementation
+app.use("/api/v1/users", authRoutes);
 
 app.get("/api/v1", (req, res) => {
   res.send({
@@ -10,10 +26,12 @@ app.get("/api/v1", (req, res) => {
   });
 });
 
+// Unhandled routes
+
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 app.use(ErrorHandler);
 
-module.exports = app;
+export default app;
