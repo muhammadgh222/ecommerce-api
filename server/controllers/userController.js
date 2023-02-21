@@ -14,7 +14,7 @@ export const updateInfo = AsyncHandler(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
-        "This route is not for password updates. Please use /updateMyPassword.",
+        "This route is not for password updates. Please use /changePassword.",
         400
       )
     );

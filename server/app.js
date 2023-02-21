@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import cookieParser from "cookie-parser";
 
 // Routes exports
 import authRoutes from "./routes/authRoutes.js";
@@ -10,6 +11,7 @@ import AppError from "./utilities/AppError.js";
 
 const app = express();
 
+app.use(cookieParser());
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));

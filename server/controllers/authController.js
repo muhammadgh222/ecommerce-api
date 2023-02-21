@@ -29,34 +29,14 @@ export const login = AsyncHandler(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-export const protect = AsyncHandler(async (req, res, next) => {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  }
-
-  if (!token) {
-    return next(new AppError("Please login to access this route", 401));
-  }
-
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  const currentUser = await User.findById(decoded.id);
-
-  if (!currentUser) {
-    return next(
-      new AppError(
-        "The user belonging to this token does no longer exist.",
-        401
-      )
-    );
-  }
-
-  req.user = currentUser;
-  next();
+export const logout = AsyncHandler(async (req, res, next) => {
+  res.cookie("jwt", "loggedout", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: "success" });
 });
+
 export const forgotPassword = AsyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
 
@@ -71,7 +51,6 @@ export const forgotPassword = AsyncHandler(async (req, res, next) => {
     "host"
   )}/api/v1/users/resetPassword/${resetToken}`;
 
-  console.log(resetURL);
   const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
 
   try {
@@ -88,7 +67,6 @@ export const forgotPassword = AsyncHandler(async (req, res, next) => {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
-    console.log(err);
     return next(
       new AppError("There was an error sending the email. Try again later!"),
       500
@@ -119,8 +97,79 @@ export const resetPassword = AsyncHandler(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+export const changePassword = AsyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("+password");
+
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError("Your current password is wrong.", 401));
+  }
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+
+  await user.save();
+
+  createSendToken(user, 200, res);
+});
+
+// Authorization
+
+// For logged users
+
+export const protect = AsyncHandler(async (req, res, next) => {
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
+  if (!token) {
+    return next(new AppError("Please login to access this route", 401));
+  }
+
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  const currentUser = await User.findById(decoded.id);
+
+  if (!currentUser) {
+    return next(
+      new AppError(
+        "The user belonging to this token does no longer exist.",
+        401
+      )
+    );
+  }
+
+  req.user = currentUser;
+  next();
+});
+
+// For Admin only or users only
+
+export const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError("You do not have permission to perform this action", 403)
+      );
+    }
+    next();
+  };
+};
+
+// Test controllers
+
 export const protectedRoute = AsyncHandler(async (req, res, next) => {
   res.status(200).json({
     message: "done",
+  });
+});
+
+export const adminProtectedRoute = AsyncHandler(async (req, res, next) => {
+  res.status(200).json({
+    message: "done by admin",
   });
 });
