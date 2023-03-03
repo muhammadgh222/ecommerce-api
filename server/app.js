@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 
 // Routes exports
 import authRoutes from "./routes/authRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 
 // Utilites  exports
 import ErrorHandler from "./utilities/ErrorHandler.js";
@@ -21,6 +23,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Routes implementation
 app.use("/api/v1/users", authRoutes);
+app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/categories", categoryRoutes);
 
 app.get("/api/v1", (req, res) => {
   res.send({
