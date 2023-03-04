@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import slugify from "slugify";
 
 const productSchema = new mongoose.Schema(
   {
@@ -11,8 +12,6 @@ const productSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
-      lowercase: true,
     },
     description: {
       type: String,
@@ -64,12 +63,32 @@ const productSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    // to enable virtual populate
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
 
+productSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "product",
+  localField: "_id",
+});
+
+productSchema.pre("save", function (next) {
+  this.slug = slugify(this.name);
+  next();
+});
+
+productSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "category",
+    select: "name",
+  }).populate({
+    path: "subCategories",
+    select: "name",
+  });
+  next();
+});
 const Product = mongoose.model("Product", productSchema);
 
 export default Product;

@@ -36,15 +36,19 @@ export const resizeUserPhoto = AsyncHandler(async (req, res, next) => {
   next();
 });
 
+// Product images upload and resize
+
 export const uploadProductImages = upload.fields([
   { name: "imageCover", maxCount: 1 },
   { name: "images", maxCount: 3 },
 ]);
+
 export const resizeProductImages = AsyncHandler(async (req, res, next) => {
-  if (!req.files.imageCover || !req.files.images) return next();
+  if (!req.files.imageCover && !req.files.images) return next();
 
   // 1) Cover image
-  req.body.imageCover = `product-${req.params.id}-${Date.now()}-cover.jpeg`;
+  req.body.imageCover = `product-${req.user._id}-${Date.now()}-cover.jpeg`;
+
   await sharp(req.files.imageCover[0].buffer)
     .resize(2000, 1333)
     .toFormat("jpeg")
@@ -53,19 +57,21 @@ export const resizeProductImages = AsyncHandler(async (req, res, next) => {
 
   // 2) Images
   req.body.images = [];
+  if (req.files.images) {
+    await Promise.all(
+      req.files.images.map(async (file, i) => {
+        const filename = `product-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
 
-  await Promise.all(
-    req.files.images.map(async (file, i) => {
-      const filename = `product-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+        await sharp(file.buffer)
+          .resize(2000, 1333)
+          .toFormat("jpeg")
+          .jpeg({ quality: 90 })
+          .toFile(`public/img/products/${filename}`);
 
-      await sharp(file.buffer)
-        .resize(2000, 1333)
-        .toFormat("jpeg")
-        .jpeg({ quality: 90 })
-        .toFile(`public/img/products/${filename}`);
+        req.body.images.push(filename);
+      })
+    );
+  }
 
-      req.body.images.push(filename);
-    })
-  );
   next();
 });
