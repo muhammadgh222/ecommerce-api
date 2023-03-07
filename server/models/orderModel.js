@@ -27,7 +27,7 @@ const orderSchema = new mongoose.Schema(
       city: String,
       postalCode: String,
     },
-    shippingPrice: {
+    shipping: {
       type: Number,
       default: 0,
     },
