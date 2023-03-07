@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import couponRoutes from "./routes/couponRoutes.js";
 
 // Utilites  exports
 import ErrorHandler from "./utilities/ErrorHandler.js";
@@ -25,6 +27,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/v1/users", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/categories", categoryRoutes);
+app.use("/api/v1/cart", cartRoutes);
+app.use("/api/v1/coupons", couponRoutes);
 
 app.get("/api/v1", (req, res) => {
   res.send({
