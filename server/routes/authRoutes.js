@@ -1,5 +1,12 @@
 import express from "express";
-import { updateInfo } from "../controllers/userController.js";
+import {
+  updateInfo,
+  getProfile,
+  getUser,
+  getAllUsers,
+  updateUser,
+  deleteUser,
+} from "../controllers/userController.js";
 import { resizeUserPhoto, uploadUserPhoto } from "../utilities/imageUpload.js";
 import {
   adminProtectedRoute,
@@ -22,16 +29,20 @@ router.get("/logout", logout);
 
 router.post("/forgotPassword", forgotPassword);
 router.patch("/resetPassword/:token", resetPassword);
-router.patch("/changePassword", protect, changePassword);
 
+router.use(protect);
+router.patch("/changePassword", changePassword);
+
+router.get("/me", getProfile, getUser);
 router.patch(
   "/updateInfo",
-  protect,
+
   uploadUserPhoto,
   resizeUserPhoto,
   updateInfo
 );
 
-router.get("/test", protect, restrictTo("admin"), adminProtectedRoute);
-
+router.use(restrictTo("admin"));
+router.route("/").get(getAllUsers);
+router.route("/:id").get(getUser).patch(updateUser).delete(deleteUser);
 export default router;

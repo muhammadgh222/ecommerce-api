@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../controllers/authController.js";
+import { protect, restrictTo } from "../controllers/authController.js";
 import {
   createCoupon,
   deleteCoupon,
@@ -10,14 +10,8 @@ import {
 
 const router = express.Router();
 
-router
-  .route("/")
-  .post(protect, createCoupon)
-  .get(protect, getCoupons)
-  .delete(protect, deleteCoupon);
-router
-  .route("/:id")
-  .get(getCoupon)
-  .patch(protect, updateCoupon)
-  .delete(protect, deleteCoupon);
+router.use(protect, restrictTo("admin"));
+
+router.route("/").post(createCoupon).get(getCoupons).delete(deleteCoupon);
+router.route("/:id").get(getCoupon).patch(updateCoupon).delete(deleteCoupon);
 export default router;

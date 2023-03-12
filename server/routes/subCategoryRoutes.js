@@ -8,18 +8,18 @@ import {
   setCategoryIdToBody,
   updateSubCategory,
 } from "../controllers/subCategoryController.js";
-import { protect } from "../controllers/authController.js";
+import { protect, restrictTo } from "../controllers/authController.js";
 
 const router = express.Router({ mergeParams: true });
 
 router
   .route("/")
   .get(createFilterObj, getSubCategories)
-  .post(protect, setCategoryIdToBody, createSubCategory);
+  .post(protect, restrictTo("admin"), setCategoryIdToBody, createSubCategory);
 router
   .route("/:id")
   .get(getSubCategory)
-  .patch(protect, updateSubCategory)
-  .delete(protect, deleteSubCategory);
+  .patch(protect, restrictTo("admin"), updateSubCategory)
+  .delete(protect, restrictTo("admin"), deleteSubCategory);
 
 export default router;

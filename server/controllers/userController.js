@@ -1,6 +1,13 @@
 import User from "../models/userModel.js";
 import AppError from "../utilities/AppError.js";
 import AsyncHandler from "../utilities/AsyncHandler.js";
+import {
+  createOne,
+  getAll,
+  getOne,
+  updateOne,
+  deleteOne,
+} from "./handleFactory.js";
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -39,3 +46,8 @@ export const getProfile = AsyncHandler(async (req, res, next) => {
   req.params.id = req.user.id;
   next();
 });
+
+export const getAllUsers = getAll(User);
+export const getUser = getOne(User);
+export const updateUser = updateOne(User);
+export const deleteUser = deleteOne(User);

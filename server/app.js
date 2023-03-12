@@ -1,6 +1,14 @@
 import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
+
+// Security practices
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import ExpressMongoSanitize from "express-mongo-sanitize"; // protects from nosql injection
+import xss from "xss-clean"; // protects from html code with js
+import hpp from "hpp";
 
 // Routes exports
 import authRoutes from "./routes/authRoutes.js";
@@ -14,11 +22,26 @@ import wishlistRoutes from "./routes/wishlistRoutes.js";
 // Utilites  exports
 import ErrorHandler from "./utilities/ErrorHandler.js";
 import AppError from "./utilities/AppError.js";
+import { webhookCheckout } from "./controllers/orderController.js";
 
 const app = express();
 
+app.use(helmet());
+
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: "Too many request for this IP.",
+});
+
+app.use("/api", limiter);
+
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
+
+app.use(ExpressMongoSanitize());
+app.use(xss());
+app.use(hpp());
 
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 const __dirname = path.resolve();
@@ -26,6 +49,12 @@ const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, "public")));
 
 // Routes implementation
+app.post(
+  "/webhook-checkout",
+  bodyParser.raw({ type: "application/json" }),
+  webhookCheckout
+);
+
 app.use("/api/v1/users", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/categories", categoryRoutes);

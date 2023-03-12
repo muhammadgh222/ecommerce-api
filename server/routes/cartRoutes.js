@@ -11,16 +11,11 @@ import {
 
 const router = express.Router();
 
-router
-  .route("/")
-  .post(protect, addToCart)
-  .get(protect, getUserCart)
-  .delete(protect, clearCart);
+router.use(protect);
 
-router.patch("/applyCoupon", protect, applyCoupon);
+router.route("/").post(addToCart).get(getUserCart).delete(clearCart);
 
-router
-  .route("/:itemId")
-  .patch(protect, updateCartItemQuantity)
-  .delete(protect, removeCartItem);
+router.patch("/applyCoupon", applyCoupon);
+
+router.route("/:itemId").patch(updateCartItemQuantity).delete(removeCartItem);
 export default router;
