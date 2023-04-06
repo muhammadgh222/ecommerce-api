@@ -9,8 +9,14 @@ import { createSendToken } from "../utilities/jwt.js";
 import { sendEmail } from "../utilities/email.js";
 
 export const signUp = AsyncHandler(async (req, res, next) => {
-  const { name, email, password, passwordConfirm } = req.body;
-  const newUser = await User.create({ name, email, password, passwordConfirm });
+  const { name, email, password, passwordConfirm, role } = req.body;
+  const newUser = await User.create({
+    name,
+    email,
+    password,
+    passwordConfirm,
+    role,
+  });
   createSendToken(newUser, 201, res);
 });
 

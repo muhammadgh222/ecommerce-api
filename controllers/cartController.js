@@ -16,16 +16,21 @@ const calcTotalCartPrice = (cart) => {
 };
 
 export const addToCart = AsyncHandler(async (req, res, next) => {
-  const { productId, color } = req.body;
+  const { productId, color, quantity } = req.body;
 
   const product = await Product.findById(productId);
 
+  if (!product) {
+    return next(new AppError("There is no such a product", 404));
+  }
   let cart = await Cart.findOne({ user: req.user._id });
 
   if (!cart) {
     cart = await Cart.create({
       user: req.user._id,
-      cartItems: [{ product: productId, color: color, price: product.price }],
+      cartItems: [
+        { product: productId, color: color, price: product.price, quantity },
+      ],
     });
   } else {
     const productIndex = cart.cartItems.findIndex(
@@ -73,11 +78,14 @@ export const removeCartItem = AsyncHandler(async (req, res, next) => {
   const cart = await Cart.findOneAndUpdate(
     { user: req.user._id },
     {
-      $pull: { cartItems: { _id: req.params.itemId } },
+      $pull: { cartItems: { product: req.params.itemId } },
     },
     { new: true }
   );
 
+  console.log(req.params.itemId);
+
+  console.log(cart);
   calcTotalCartPrice(cart);
   cart.save();
   res.status(200).json({
@@ -97,7 +105,7 @@ export const updateCartItemQuantity = AsyncHandler(async (req, res, next) => {
   }
 
   const itemIndex = cart.cartItems.findIndex(
-    (item) => item._id.toString() === itemId
+    (item) => item.product.toString() === itemId
   );
   if (itemIndex > -1) {
     const cartItem = cart.cartItems[itemIndex];

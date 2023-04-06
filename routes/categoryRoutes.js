@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../controllers/authController.js";
+import { protect, restrictTo } from "../controllers/authController.js";
 import {
   deleteCategory,
   createCategory,
@@ -13,7 +13,10 @@ const router = express.Router();
 
 router.use("/:categoryId/subcategories", subcategoriesRoutes);
 
-router.route("/").get(getCategories).post(protect, createCategory);
+router
+  .route("/")
+  .get(getCategories)
+  .post(protect, restrictTo("admin"), createCategory);
 router
   .route("/:id")
   .get(getCategory)
