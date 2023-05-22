@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
+import morgan from "morgan";
 
 // Security practices
 import rateLimit from "express-rate-limit";
@@ -28,6 +29,7 @@ const app = express();
 
 app.use(helmet());
 
+app.use(morgan("tiny"));
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
